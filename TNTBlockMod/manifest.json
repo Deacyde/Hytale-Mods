@@ -1,0 +1,20 @@
+{
+  "Group": "Deacyde",
+  "Name": "TNT Block",
+  "Version": "1.0.1",
+  "Description": "Throwable TNT Block (red, destroys terrain) and Nuke Block (yellow, 10x explosion radius).",
+  "Authors": [
+    {
+      "Name": "Deacyde",
+      "Email": "",
+      "Url": ""
+    }
+  ],
+  "Website": "",
+  "Dependencies": {},
+  "OptionalDependencies": {},
+  "LoadBefore": {},
+  "DisabledByDefault": false,
+  "IncludesAssetPack": false,
+  "SubPlugins": []
+}

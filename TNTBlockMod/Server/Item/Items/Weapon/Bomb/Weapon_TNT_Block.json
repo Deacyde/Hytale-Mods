@@ -1,0 +1,23 @@
+{
+  "TranslationProperties": {
+    "Name": "TNT Block"
+  },
+  "Categories": ["Items.Weapons"],
+  "Quality": "Uncommon",
+  "ItemLevel": 1,
+  "PlayerAnimationsId": "Item",
+  "MaxStack": 10,
+  "Interactions": {
+    "Primary": {
+      "Interactions": ["TNT_Block_Throw"]
+    }
+  },
+  "Model": "Items/Weapons/Bomb/TNT_Block.blockymodel",
+  "Texture": "Items/Weapons/Bomb/TNT_Block_Texture.png",
+  "Icon": "Icons/ItemsGenerated/Weapon_TNT_Block.png",
+  "Tags": {
+    "Type": ["Weapon"],
+    "Family": ["Bomb"]
+  },
+  "Weapon": {}
+}

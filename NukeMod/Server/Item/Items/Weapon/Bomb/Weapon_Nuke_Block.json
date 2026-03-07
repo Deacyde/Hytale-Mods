@@ -1,0 +1,23 @@
+{
+  "TranslationProperties": {
+    "Name": "Nuke Block"
+  },
+  "Categories": ["Items.Weapons"],
+  "Quality": "Epic",
+  "ItemLevel": 1,
+  "PlayerAnimationsId": "Item",
+  "MaxStack": 5,
+  "Interactions": {
+    "Primary": {
+      "Interactions": ["Nuke_Block_Throw"]
+    }
+  },
+  "Model": "Items/Weapons/Bomb/Nuke_Block.blockymodel",
+  "Texture": "Items/Weapons/Bomb/Nuke_Block_Texture.png",
+  "Icon": "Icons/ItemsGenerated/Weapon_Nuke_Block.png",
+  "Tags": {
+    "Type": ["Weapon"],
+    "Family": ["Bomb"]
+  },
+  "Weapon": {}
+}

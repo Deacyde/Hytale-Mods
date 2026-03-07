@@ -1,0 +1,20 @@
+{
+  "Group": "Deacyde",
+  "Name": "Nuke Mod",
+  "Version": "1.0.0",
+  "Description": "A throwable Nuke Block that causes a massive explosion, destroying a huge radius of terrain and dealing heavy damage to all nearby entities.",
+  "Authors": [
+    {
+      "Name": "Deacyde",
+      "Email": "",
+      "Url": ""
+    }
+  ],
+  "Website": "",
+  "Dependencies": {},
+  "OptionalDependencies": {},
+  "LoadBefore": {},
+  "DisabledByDefault": false,
+  "IncludesAssetPack": false,
+  "SubPlugins": []
+}
