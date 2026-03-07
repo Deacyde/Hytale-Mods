@@ -1,0 +1,20 @@
+{
+  "Group": "Deacyde",
+  "Name": "Gun Turret",
+  "Version": "1.0.0",
+  "Description": "Adds a deployable gun turret weapon. Throw to deploy \u2014 it auto-targets and rapidly fires at nearby enemies.",
+  "Authors": [
+    {
+      "Name": "Deacyde",
+      "Email": "",
+      "Url": ""
+    }
+  ],
+  "Website": "",
+  "Dependencies": {},
+  "OptionalDependencies": {},
+  "LoadBefore": {},
+  "DisabledByDefault": false,
+  "IncludesAssetPack": false,
+  "SubPlugins": []
+}

@@ -1,0 +1,53 @@
+{
+  "Model": "Gun_Turret_Item_Projectile",
+  "Physics": {
+    "Type": "Standard",
+    "Gravity": 15,
+    "TerminalVelocityAir": 50,
+    "TerminalVelocityWater": 15,
+    "RotationMode": "VelocityDamped",
+    "Bounciness": 0,
+    "SticksVertically": true
+  },
+  "LaunchForce": 15,
+  "SpawnOffset": { "X": 0.3, "Y": -0.5, "Z": -0.6 },
+  "SpawnRotationOffset": { "Pitch": 10.0, "Yaw": 1, "Roll": 0 },
+  "Interactions": {
+    "ProjectileMiss": {
+      "Interactions": [
+        {
+          "Type": "SpawnDeployableAtHitLocation",
+          "Config": {
+            "Type": "Aoe",
+            "Shape": "Cylinder",
+            "Id": "Gun_Turret",
+            "Model": "Gun_Turret",
+            "ModelScale": 1.0,
+            "HitboxCollisionConfig": "HardCollision",
+            "LiveDuration": 30,
+            "StartRadius": 0.1,
+            "EndRadius": 8,
+            "Height": 3,
+            "RadiusChangeTime": 2,
+            "DamageInterval": 0.5,
+            "DamageAmount": 8.0,
+            "DeploySoundEventId": "SFX_Deployable_Totem_Heal_Spawn",
+            "SpawnParticles": [
+              {
+                "SystemId": "Explosion_Medium",
+                "TargetEntityPart": "Entity"
+              }
+            ],
+            "DespawnParticles": [
+              {
+                "SystemId": "Explosion_Medium",
+                "TargetEntityPart": "Entity"
+              }
+            ]
+          }
+        },
+        { "Type": "RemoveEntity", "Entity": "User" }
+      ]
+    }
+  }
+}
