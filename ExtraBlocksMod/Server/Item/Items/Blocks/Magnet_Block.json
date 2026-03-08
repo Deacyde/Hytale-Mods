@@ -1,0 +1,44 @@
+{
+  "TranslationProperties": {
+    "Name": "Speed Block"
+  },
+  "ItemLevel": 1,
+  "MaxStack": 16,
+  "Icon": "Icons/ItemsGenerated/Magnet_Block.png",
+  "Categories": ["Items.Blocks"],
+  "PlayerAnimationsId": "Block",
+  "Interactions": {
+    "Primary": "Block_Primary",
+    "Secondary": "Block_Secondary"
+  },
+  "BlockType": {
+    "Material": "Empty",
+    "DrawType": "Cube",
+    "Opacity": "Transparent",
+    "Group": "Stone",
+    "Flags": {},
+    "Gathering": {
+      "Soft": { "ItemId": "Magnet_Block" }
+    },
+    "Textures": [
+      { "All": "BlockTextures/Magnet_Block.png", "Weight": 1 }
+    ],
+    "MovementSettings": {
+      "HorizontalSpeedMultiplier": 5.0,
+      "TerminalVelocityModifier": 3.0
+    },
+    "BlockParticleSetId": "Dust",
+    "ParticleColor": "#ff2244",
+    "BlockSoundSetId": "Stone"
+  },
+  "Tags": {
+    "Type": ["Block"],
+    "Family": ["Stone"]
+  },
+  "ItemSoundSetId": "ISS_Blocks_Stone",
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [22.5, 45, 22.5],
+    "Translation": [0, -13.5]
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "TranslationProperties": {
+    "Name": "Gas Block"
+  },
+  "ItemLevel": 1,
+  "MaxStack": 16,
+  "Icon": "Icons/ItemsGenerated/Gas_Block.png",
+  "Categories": ["Items.Weapons"],
+  "PlayerAnimationsId": "Block",
+  "Interactions": {
+    "Primary": "Block_Primary",
+    "Secondary": "Block_Secondary"
+  },
+  "DropOnDeath": true,
+  "BlockType": {
+    "Material": "Empty",
+    "DrawType": "Cube",
+    "Opacity": "Transparent",
+    "Group": "Stone",
+    "Flags": {},
+    "Gathering": {
+      "Soft": { "ItemId": "Gas_Block" }
+    },
+    "Textures": [
+      { "All": "BlockTextures/Gas_Block.png", "Weight": 1 }
+    ],
+    "MovementSettings": {
+      "Drag": 5,
+      "Friction": 5,
+      "HorizontalSpeedMultiplier": 0.4,
+      "TerminalVelocityModifier": 0.4
+    },
+    "BlockParticleSetId": "Dust",
+    "ParticleColor": "#22ff44",
+    "BlockSoundSetId": "Stone",
+    "Interactions": {
+      "Collision": "GasBlock_Poison"
+    }
+  },
+  "Tags": {
+    "Type": ["Weapon"],
+    "Family": ["Trap"]
+  },
+  "ItemSoundSetId": "ISS_Blocks_Stone",
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [22.5, 45, 22.5],
+    "Translation": [0, -13.5]
+  },
+  "Quality": "Rare"
+}

@@ -1,0 +1,34 @@
+{
+  "Type": "Serial",
+  "Interactions": [
+    {
+      "Type": "Explode",
+      "Parent": "Explode_Generic",
+      "Config": {
+        "DamageBlocks": false,
+        "DamageEntities": true,
+        "EntityDamage": 60,
+        "EntityDamageRadius": 5,
+        "BlockDamageRadius": 0,
+        "Knockback": { "Duration": 0.3, "Force": 20 },
+        "EntityDamageFalloff": 1
+      },
+      "Effects": {
+        "WorldSoundEventId": "SFX_Goblin_Lobber_Bomb_Death",
+        "LocalSoundEventId": "SFX_Goblin_Lobber_Bomb_Death",
+        "Particles": [
+          {
+            "SystemId": "Explosion_Big",
+            "Scale": 1.2,
+            "TargetEntityPart": "Entity",
+            "DetachedFromModel": true
+          }
+        ],
+        "CameraEffect": "Impact_Strong"
+      }
+    },
+    {
+      "Type": "DestroyBlock"
+    }
+  ]
+}

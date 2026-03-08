@@ -1,0 +1,21 @@
+{
+    "TranslationProperties": {
+        "Name": "WorldEdit Wand",
+        "Description": "Left-click a block to set Pos1. Right-click to set Pos2. Use /we commands to edit."
+    },
+    "Categories": [
+        "Items.Misc"
+    ],
+    "Icon": "Icons/ItemsGenerated/WE_Wand.png",
+    "Quality": "Legendary",
+    "Model": "Items/Weapons/Axe/Crude.blockymodel",
+    "Texture": "Items/Weapons/Axe/Crude_Texture.png",
+    "PlayerAnimationsId": "Axe",
+    "ItemSoundSetId": "ISS_Weapons_Blunt_Small",
+    "IconProperties": {
+        "Scale": 0.45,
+        "Translation": [-24, -24],
+        "Rotation": [45, 90, 0]
+    },
+    "DroppedItemAnimation": "Items/Animations/Dropped/Dropped_Diagonal_Left.blockyanim"
+}

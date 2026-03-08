@@ -1,0 +1,11 @@
+{
+  "Type": "ApplyEffect",
+  "EffectId": {
+    "Locale": "block",
+    "Duration": 0.3,
+    "OverlapBehavior": "Overwrite",
+    "ApplicationEffects": {
+      "HorizontalSpeedMultiplier": 3.0
+    }
+  }
+}

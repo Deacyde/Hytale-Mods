@@ -1,0 +1,50 @@
+{
+  "TranslationProperties": {
+    "Name": "Glowstone"
+  },
+  "ItemLevel": 1,
+  "MaxStack": 64,
+  "Icon": "Icons/ItemsGenerated/Glowstone.png",
+  "Categories": ["Items.Blocks"],
+  "PlayerAnimationsId": "Block",
+  "Interactions": {
+    "Primary": "Block_Primary",
+    "Secondary": "Block_Secondary"
+  },
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Cube",
+    "Group": "Stone",
+    "Flags": {},
+    "Gathering": {
+      "Breaking": {
+        "ItemId": "Glowstone"
+      }
+    },
+    "Textures": [
+      {
+        "All": "BlockTextures/Glowstone.png",
+        "Weight": 1
+      }
+    ],
+    "Light": {
+      "Color": "#ffe066",
+      "Radius": 10
+    },
+    "Opacity": "Transparent",
+    "BlockParticleSetId": "Stone",
+    "ParticleColor": "#ffe066",
+    "BlockSoundSetId": "Stone",
+    "CubeShadingMode": "Standard"
+  },
+  "Tags": {
+    "Type": ["Block"],
+    "Family": ["Stone"]
+  },
+  "ItemSoundSetId": "ISS_Blocks_Stone",
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [22.5, 45, 22.5],
+    "Translation": [0, -13.5]
+  }
+}

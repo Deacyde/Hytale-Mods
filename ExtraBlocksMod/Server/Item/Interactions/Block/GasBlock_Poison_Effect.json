@@ -1,0 +1,24 @@
+{
+  "Type": "ApplyEffect",
+  "EffectId": {
+    "Locale": "block",
+    "Duration": 2.0,
+    "OverlapBehavior": "Overwrite",
+    "DamageCalculator": {
+      "BaseDamage": { "Physical": 8 }
+    },
+    "ApplicationEffects": {
+      "HorizontalSpeedMultiplier": 0.5
+    }
+  },
+  "Effects": {
+    "Particles": [
+      {
+        "SystemId": "Impact_Poison",
+        "Scale": 2.0,
+        "TargetEntityPart": "Entity",
+        "DetachedFromModel": true
+      }
+    ]
+  }
+}

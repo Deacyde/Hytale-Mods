@@ -1,0 +1,47 @@
+{
+  "TranslationProperties": {
+    "Name": "Proximity Mine"
+  },
+  "ItemLevel": 1,
+  "MaxStack": 16,
+  "Icon": "Icons/ItemsGenerated/Proximity_Mine.png",
+  "Categories": ["Items.Weapons"],
+  "PlayerAnimationsId": "Item",
+  "Interactions": {
+    "Primary": "Block_Primary",
+    "Secondary": "Block_Secondary"
+  },
+  "DropOnDeath": true,
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Cube",
+    "Opacity": "Transparent",
+    "Group": "Stone",
+    "Flags": { "IsStackable": true },
+    "Gathering": {
+      "Harvest": { "ItemId": "Proximity_Mine" },
+      "Soft": { "ItemId": "Proximity_Mine" }
+    },
+    "Textures": [
+      { "All": "BlockTextures/Proximity_Mine.png", "Weight": 1 }
+    ],
+    "BlockParticleSetId": "Dust",
+    "ParticleColor": "#555555",
+    "BlockSoundSetId": "Stone",
+    "CubeShadingMode": "Standard",
+    "Interactions": {
+      "CollisionEnter": "ProximityMine_Explosion"
+    }
+  },
+  "Tags": {
+    "Type": ["Weapon"],
+    "Family": ["Bomb"]
+  },
+  "ItemSoundSetId": "ISS_Items_Foliage",
+  "IconProperties": {
+    "Scale": 1.4,
+    "Rotation": [22.5, 48, 25],
+    "Translation": [0, -1]
+  },
+  "Quality": "Uncommon"
+}

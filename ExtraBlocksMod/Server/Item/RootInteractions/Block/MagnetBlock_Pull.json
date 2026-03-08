@@ -1,0 +1,9 @@
+{
+  "Cooldown": {
+    "Id": "MagnetPull",
+    "Cooldown": 0.3
+  },
+  "Interactions": [
+    "MagnetBlock_Pull_Effect"
+  ]
+}

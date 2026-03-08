@@ -1,0 +1,9 @@
+{
+  "Cooldown": {
+    "Id": "GasPoison",
+    "Cooldown": 0.5
+  },
+  "Interactions": [
+    "GasBlock_Poison_Effect"
+  ]
+}

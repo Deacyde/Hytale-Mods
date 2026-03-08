@@ -1,0 +1,49 @@
+{
+    "TranslationProperties": {
+        "Name": "Spawn Block",
+        "Description": "A block that continuously spawns mobs. Configure with /spawnblock <mob> before placing."
+    },
+    "Icon": "Icons/ItemsGenerated/Block_Spawn_Block.png",
+    "Categories": [
+        "Blocks.Decorations"
+    ],
+    "Quality": "Technical",
+    "PlayerAnimationsId": "Block",
+    "ItemSoundSetId": "ISS_Blocks_Stone",
+    "BlockType": {
+        "DrawType": "Cube",
+        "Material": "Solid",
+        "Group": "Stone",
+        "Flags": {},
+        "BlockParticleSetId": "Stone",
+        "BlockSoundSetId": "Stone",
+        "Textures": [
+            { "All": "BlockTextures/Block_Spawn_Block.png", "Weight": 1 }
+        ],
+        "Gathering": {
+            "Breaking": {
+                "GatherType": "Unbreakable"
+            }
+        },
+        "BlockEntity": {
+            "Components": {
+                "SpawnBlockData": {
+                    "MobType": "Goblin_Scrapper",
+                    "SpawnRate": 30,
+                    "MaxMobs": 5,
+                    "SpawnRadius": 10
+                }
+            }
+        }
+    },
+    "Tags": {
+        "Type": [
+            "Block"
+        ]
+    },
+    "IconProperties": {
+        "Scale": 0.58823,
+        "Rotation": [22.5, 45, 22.5],
+        "Translation": [0, -13.5]
+    }
+}
