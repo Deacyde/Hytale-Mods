@@ -74,6 +74,9 @@ public class WandCommand extends AbstractPlayerCommand {
         }
 
         WandSession session = plugin.getSession(player.getUuid());
+        LOGGER.atInfo().log("[WorldEdit] /we " + args[0] + " uuid=" + player.getUuid()
+            + " pos1=" + session.pos1 + " pos2=" + session.pos2
+            + " hasSelection=" + session.hasSelection());
 
         switch (args[0].toLowerCase()) {
             case "wand" -> giveWand(ctx, store, playerRef, player);
@@ -119,18 +122,25 @@ public class WandCommand extends AbstractPlayerCommand {
     private void setPos1AtFeet(CommandContext ctx, WandSession session, PlayerRef player) {
         Vector3d pos = player.getTransform().getPosition();
         session.pos1 = new Vector3i((int) Math.floor(pos.x), (int) Math.floor(pos.y), (int) Math.floor(pos.z));
+        session.nextClickIsPos2 = true;   // next wand click should set pos2
+        LOGGER.atInfo().log("[WorldEdit] pos1 set at feet: " + session.pos1 + " uuid=" + player.getUuid());
         ctx.sendMessage(Message.raw("§a[WE] Pos1 set to §f(" + session.pos1.x + ", " + session.pos1.y + ", " + session.pos1.z + ")"));
     }
 
     private void setPos2AtFeet(CommandContext ctx, WandSession session, PlayerRef player) {
         Vector3d pos = player.getTransform().getPosition();
         session.pos2 = new Vector3i((int) Math.floor(pos.x), (int) Math.floor(pos.y), (int) Math.floor(pos.z));
+        session.nextClickIsPos2 = false;  // next wand click should set pos1
+        LOGGER.atInfo().log("[WorldEdit] pos2 set at feet: " + session.pos2 + " uuid=" + player.getUuid());
         ctx.sendMessage(Message.raw("§b[WE] Pos2 set to §f(" + session.pos2.x + ", " + session.pos2.y + ", " + session.pos2.z + ")"));
     }
 
     // ──────────────────────── fill ────────────────────────
 
     private void doFill(CommandContext ctx, WandSession session, World world, String blockId, boolean wallsOnly) {
+        LOGGER.atInfo().log("[WorldEdit] doFill entry: blockId=" + blockId
+            + " pos1=" + session.pos1 + " pos2=" + session.pos2
+            + " hasSelection=" + session.hasSelection());
         if (!session.hasSelection()) {
             ctx.sendMessage(Message.raw("§c[WE] No selection — use the wand or /we pos1 /we pos2 first."));
             return;
@@ -145,6 +155,10 @@ public class WandCommand extends AbstractPlayerCommand {
         Vector3i max = session.getMax();
         int sx = session.getSizeX(), sy = session.getSizeY(), sz = session.getSizeZ();
 
+        LOGGER.atInfo().log("[WorldEdit] doFill: blockId=" + blockId
+            + " pos1=" + session.pos1 + " pos2=" + session.pos2
+            + " min=" + min + " max=" + max + " size=" + sx + "x" + sy + "x" + sz);
+
         // Save undo buffer before modifying
         String[][][] undo = new String[sx][sy][sz];
         for (int x = min.x; x <= max.x; x++)
@@ -156,7 +170,8 @@ public class WandCommand extends AbstractPlayerCommand {
         session.undoBuffer = undo;
         session.undoOrigin = min;
 
-        // Fill
+        // Fill — use integer block ID for Empty to avoid string lookup issues
+        boolean isClearing = BlockType.EMPTY_KEY.equals(blockId);
         int count = 0;
         try {
             for (int x = min.x; x <= max.x; x++) {
@@ -166,7 +181,11 @@ public class WandCommand extends AbstractPlayerCommand {
                             boolean onWall = x == min.x || x == max.x || z == min.z || z == max.z;
                             if (!onWall) continue;
                         }
-                        world.setBlock(x, y, z, blockId);
+                        if (isClearing) {
+                            world.setBlock(x, y, z, BlockType.EMPTY_KEY);
+                        } else {
+                            world.setBlock(x, y, z, blockId);
+                        }
                         count++;
                     }
                 }
@@ -176,7 +195,7 @@ public class WandCommand extends AbstractPlayerCommand {
                 + "§c. Use Hytale IDs e.g. §fRock_Stone§c, §fSoil_Dirt§c, §fWood_Pine_Log§c, §fBrick_Cut"));
             return;
         }
-        ctx.sendMessage(Message.raw("§a[WE] §e" + count + "§a blocks set to §f" + blockId));
+        ctx.sendMessage(Message.raw("§a[WE] §e" + count + "§a blocks set to §f" + (isClearing ? "air" : blockId)));
     }
 
     private void doWalls(CommandContext ctx, WandSession session, World world, String blockId) {

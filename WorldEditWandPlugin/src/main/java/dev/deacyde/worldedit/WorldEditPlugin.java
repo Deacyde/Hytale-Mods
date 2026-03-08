@@ -1,14 +1,16 @@
 package dev.deacyde.worldedit;
 
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
+import com.hypixel.hytale.server.core.plugin.PluginManager;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
-import com.hypixel.hytale.server.core.event.events.player.PlayerInteractEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerMouseButtonEvent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
-import com.hypixel.hytale.server.core.universe.Universe;
+import com.hypixel.hytale.event.EventRegistration;
+import com.hypixel.hytale.server.core.event.events.player.PlayerMouseMotionEvent;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.protocol.MouseButtonState;
 import com.hypixel.hytale.protocol.MouseButtonType;
@@ -27,6 +29,10 @@ public class WorldEditPlugin extends JavaPlugin {
     static final int MAX_BLOCKS = 100_000;
 
     private final Map<UUID, WandSession> sessions = new ConcurrentHashMap<>();
+    @SuppressWarnings("unused")
+    private EventRegistration<?, ?> mouseButtonRegistration;
+    @SuppressWarnings("unused")
+    private EventRegistration<?, ?> mouseMotionRegistration;
 
     public WorldEditPlugin(@Nonnull JavaPluginInit init) {
         super(init);
@@ -38,8 +44,10 @@ public class WorldEditPlugin extends JavaPlugin {
     protected void setup() {
         this.getCommandRegistry().registerCommand(new WandCommand(this));
 
-        // ECS system approach: DamageBlockEvent fires per block damage in EntityStore ECS
-        this.getEntityStoreRegistry().registerSystem(new WandBlockDamageSystem());
+        // BreakBlockEvent fires via ComponentAccessor.invoke(Ref, Event) — entity-specific dispatch
+        // that properly reaches plugin EntityEventSystems. Handles both left-click (pos1) and
+        // right-click (pos2) by inspecting the active InteractionChain type.
+        this.getEntityStoreRegistry().registerSystem(new WandBreakBlockSystem());
 
         LOGGER.atInfo().log("[WorldEdit] Setup complete. Use /we wand to get the wand.");
     }
@@ -47,21 +55,27 @@ public class WorldEditPlugin extends JavaPlugin {
     @Override
     protected void start() {
         super.start();
-        // After all modules are loaded, register on Universe's root event registry.
-        // InteractionModule dispatches PlayerMouseButtonEvent on its own registry which
-        // bubbles UP to Universe's registry — but NOT sideways to our plugin's registry.
-        // Registering on Universe.get().getEventRegistry() catches events from all modules.
         try {
-            Universe.get().getEventRegistry().register(PlayerMouseButtonEvent.class, this::onMouseButton);
-            LOGGER.atInfo().log("[WorldEdit] Registered PlayerMouseButtonEvent on Universe registry.");
+            var bus = HytaleServer.get().getEventBus();
+            // Verify class loader identity — both must use the server's classloader
+            try {
+                Class<?> serverClass = com.hypixel.hytale.server.core.plugin.PluginManager.class
+                    .getClassLoader()
+                    .loadClass("com.hypixel.hytale.server.core.event.events.player.PlayerMouseButtonEvent");
+                boolean sameClass = (serverClass == PlayerMouseButtonEvent.class);
+                LOGGER.atInfo().log("[WorldEdit] ClassLoader check: serverClass=" + serverClass.getClassLoader()
+                    + " ourClass=" + PlayerMouseButtonEvent.class.getClassLoader()
+                    + " same=" + sameClass);
+            } catch (Throwable cl) {
+                LOGGER.atWarning().log("[WorldEdit] ClassLoader check failed: " + cl);
+            }
+            // Store registrations as fields to prevent GC
+            mouseButtonRegistration = bus.register(PlayerMouseButtonEvent.class, this::onMouseButton);
+            mouseMotionRegistration = bus.register(PlayerMouseMotionEvent.class, this::onMouseMotion);
+            LOGGER.atInfo().log("[WorldEdit] Registered on EventBus. Known events: "
+                + bus.getRegisteredEventClassNames());
         } catch (Throwable t) {
-            LOGGER.atWarning().log("[WorldEdit] Failed to register MouseButtonEvent on Universe: " + t);
-        }
-        try {
-            Universe.get().getEventRegistry().registerGlobal(PlayerInteractEvent.class, this::onPlayerInteract);
-            LOGGER.atInfo().log("[WorldEdit] Registered PlayerInteractEvent on Universe registry.");
-        } catch (Throwable t) {
-            LOGGER.atWarning().log("[WorldEdit] Failed to register PlayerInteractEvent on Universe: " + t);
+            LOGGER.atWarning().log("[WorldEdit] Failed to register on EventBus: " + t);
         }
     }
 
@@ -73,8 +87,18 @@ public class WorldEditPlugin extends JavaPlugin {
         return sessions.computeIfAbsent(playerUuid, k -> new WandSession());
     }
 
-    /** Handles PlayerMouseButtonEvent from Universe's root event registry. */
+    /** Diagnostic: fires on any mouse movement — confirms EventBus works for our plugin. */
+    private void onMouseMotion(PlayerMouseMotionEvent event) {
+        // Only log once to avoid spam — remove after confirming events fire
+    }
+
+    /** Handles PlayerMouseButtonEvent from the EventBus. */
     private void onMouseButton(PlayerMouseButtonEvent event) {
+        // Unconditional log — if this never appears, the handler is never called
+        LOGGER.atInfo().log("[WorldEdit] onMouseButton FIRED state=" + event.getMouseButton().state
+            + " btn=" + event.getMouseButton().mouseButtonType
+            + " item=" + (event.getItemInHand() != null ? event.getItemInHand().getId() : "null"));
+
         if (event.getMouseButton().state != MouseButtonState.Pressed) return;
 
         Item item = event.getItemInHand();
@@ -94,15 +118,6 @@ public class WorldEditPlugin extends JavaPlugin {
         WandSession session = getSession(player.getUuid());
         setPositionFromClick(session, player, target, event.getMouseButton().mouseButtonType);
         event.setCancelled(true);
-    }
-
-    /** Handles PlayerInteractEvent from Universe's root event registry (backup). */
-    private void onPlayerInteract(PlayerInteractEvent event) {
-        var item = event.getItemInHand();
-        LOGGER.atInfo().log("[WorldEdit] PlayerInteractEvent: item="
-            + (item != null ? item.getItemId() : "null")
-            + " action=" + event.getActionType()
-            + " target=" + event.getTargetBlock());
     }
 
     void setPositionFromClick(WandSession session, PlayerRef player, Vector3i target, MouseButtonType btn) {

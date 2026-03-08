@@ -10,6 +10,9 @@ public class WandSession {
     public Vector3i pos1 = null;
     public Vector3i pos2 = null;
 
+    /** Toggle: after pos1 is set, next wand click sets pos2. Resets after pos2 is set. */
+    public boolean nextClickIsPos2 = false;
+
     // clipboard[dx][dy][dz] = blockId string; null entry means Air
     public String[][][] clipboard = null;
     // World-space origin of the clipboard (= pos1 corner when copy was taken)
