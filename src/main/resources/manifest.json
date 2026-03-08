@@ -1,0 +1,22 @@
+{
+    "Group": "Deacyde",
+    "Name": "TankBarrel",
+    "Version": "1.0.0",
+    "Description": "Deployable tank barrel that fires TNT and Nuke shells.",
+    "Authors": [
+        {
+            "Name": "Deacyde"
+        }
+    ],
+    "Website": "dev.deacyde.com",
+    "Dependencies": {
+        
+    },
+    "OptionalDependencies": {
+        
+    },
+    "DisabledByDefault": false,
+    "Main": "dev.deacyde.tankbarrel.TankBarrelPlugin",
+    "IncludesAssetPack": true,
+    "ServerVersion": ">=2026.2.19"
+}

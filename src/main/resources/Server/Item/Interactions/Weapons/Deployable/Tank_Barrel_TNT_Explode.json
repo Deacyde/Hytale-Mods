@@ -1,0 +1,9 @@
+{
+  "Parent": "Explode_Generic",
+  "Config": {
+    "BlockDamageRadius": 5,
+    "EntityDamageRadius": 6,
+    "EntityDamage": 30,
+    "BlockDropChance": 0.5
+  }
+}

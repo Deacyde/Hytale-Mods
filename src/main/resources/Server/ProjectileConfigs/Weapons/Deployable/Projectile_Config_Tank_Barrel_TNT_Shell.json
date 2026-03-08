@@ -1,0 +1,35 @@
+{
+  "Model": "TNT_Block_Projectile",
+  "Physics": {
+    "Type": "Standard",
+    "Gravity": 15,
+    "TerminalVelocityAir": 60,
+    "TerminalVelocityWater": 15,
+    "RotationMode": "VelocityRoll",
+    "BounceLimit": 0.2,
+    "Bounciness": 0.1,
+    "BounceCount": 0,
+    "AllowRolling": false,
+    "SticksVertically": false
+  },
+  "LaunchForce": 30,
+  "SpawnOffset": { "X": 0.0, "Y": 0.5, "Z": 0.0 },
+  "Interactions": {
+    "ProjectileHit": {
+      "Cooldown": { "Cooldown": 0 },
+      "Rules": { "Interrupting": ["ProjectileSpawn"] },
+      "Interactions": [
+        "Tank_Barrel_TNT_Explode",
+        { "Type": "RemoveEntity", "Entity": "User" }
+      ]
+    },
+    "ProjectileMiss": {
+      "Cooldown": { "Cooldown": 0 },
+      "Rules": { "Interrupting": ["ProjectileSpawn"] },
+      "Interactions": [
+        "Tank_Barrel_TNT_Explode",
+        { "Type": "RemoveEntity", "Entity": "User" }
+      ]
+    }
+  }
+}
