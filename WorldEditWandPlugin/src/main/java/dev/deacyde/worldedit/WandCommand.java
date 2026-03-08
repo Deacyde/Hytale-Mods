@@ -27,8 +27,12 @@ import javax.annotation.Nonnull;
  *  set <blockId>     — fill selection with blockId
  *  walls <blockId>   — fill only the 4 side walls of the selection
  *  clear             — fill selection with air
+ *  hollow            — remove interior blocks, keep outer shell
  *  copy              — copy selection to clipboard (origin = pos1 corner)
+ *  cut               — copy + clear original; clipboard ready to paste/rotate
  *  paste             — paste clipboard at player's feet
+ *  rotate <deg>      — rotate clipboard 90/180/270° around Y axis before paste
+ *  stack <n> <dir>   — repeat selection N times in direction (north/south/east/west/up/down)
  *  undo              — undo last fill/paste
  *  size              — show selection dimensions
  */
@@ -90,9 +94,19 @@ public class WandCommand extends AbstractPlayerCommand {
                 if (args.length < 2) { ctx.sendMessage(Message.raw("§c[WE] Usage: /we walls <blockId>")); return; }
                 doWalls(ctx, session, world, args[1]);
             }
-            case "clear" -> doFill(ctx, session, world, BlockType.EMPTY_KEY, false);
-            case "copy"  -> doCopy(ctx, session, world, player);
-            case "paste" -> doPaste(ctx, session, world, player);
+            case "clear"  -> doFill(ctx, session, world, BlockType.EMPTY_KEY, false);
+            case "hollow" -> doHollow(ctx, session, world);
+            case "copy"   -> doCopy(ctx, session, world, player);
+            case "cut"    -> doCut(ctx, session, world, player);
+            case "paste"  -> doPaste(ctx, session, world, player);
+            case "rotate" -> {
+                if (args.length < 2) { ctx.sendMessage(Message.raw("§c[WE] Usage: /we rotate <90|180|270>")); return; }
+                doRotate(ctx, session, args[1]);
+            }
+            case "stack" -> {
+                if (args.length < 3) { ctx.sendMessage(Message.raw("§c[WE] Usage: /we stack <n> <north|south|east|west|up|down>")); return; }
+                doStack(ctx, session, world, args[1], args[2]);
+            }
             case "undo"  -> doUndo(ctx, session, world);
             case "size"  -> doSize(ctx, session);
             default -> {
@@ -250,7 +264,211 @@ public class WandCommand extends AbstractPlayerCommand {
         ctx.sendMessage(Message.raw("§a[WE] §e" + count + "§a wall blocks set to §f" + blockId));
     }
 
-    // ──────────────────────── copy ────────────────────────
+    // ──────────────────────── hollow ────────────────────────
+
+    private void doHollow(CommandContext ctx, WandSession session, World world) {
+        if (!session.hasSelection()) {
+            ctx.sendMessage(Message.raw("§c[WE] No selection."));
+            return;
+        }
+        Vector3i min = session.getMin();
+        Vector3i max = session.getMax();
+        int sx = session.getSizeX(), sy = session.getSizeY(), sz = session.getSizeZ();
+        long total = session.getTotalBlocks();
+
+        if (total > WorldEditPlugin.MAX_BLOCKS) {
+            ctx.sendMessage(Message.raw("§c[WE] Selection too large (" + total + " blocks). Max: " + WorldEditPlugin.MAX_BLOCKS));
+            return;
+        }
+
+        // Save undo
+        if (total <= WorldEditPlugin.UNDO_SKIP_THRESHOLD) {
+            String[][][] undo = new String[sx][sy][sz];
+            for (int x = min.x; x <= max.x; x++)
+                for (int y = min.y; y <= max.y; y++)
+                    for (int z = min.z; z <= max.z; z++) {
+                        BlockType bt = world.getBlockType(x, y, z);
+                        undo[x - min.x][y - min.y][z - min.z] = (bt != null) ? bt.getId() : BlockType.EMPTY_KEY;
+                    }
+            session.undoBuffer = undo;
+            session.undoOrigin = min;
+        } else {
+            session.undoBuffer = null;
+            session.undoOrigin = null;
+        }
+
+        // Clear only interior blocks (not on any face)
+        int count = 0;
+        for (int x = min.x; x <= max.x; x++) {
+            for (int y = min.y; y <= max.y; y++) {
+                for (int z = min.z; z <= max.z; z++) {
+                    boolean onFace = x == min.x || x == max.x
+                                  || y == min.y || y == max.y
+                                  || z == min.z || z == max.z;
+                    if (!onFace) {
+                        world.setBlock(x, y, z, BlockType.EMPTY_KEY);
+                        count++;
+                    }
+                }
+            }
+        }
+        ctx.sendMessage(Message.raw("§a[WE] Hollowed — cleared §e" + count + "§a interior blocks."));
+    }
+
+    // ──────────────────────── cut ────────────────────────
+
+    private void doCut(CommandContext ctx, WandSession session, World world, PlayerRef player) {
+        if (!session.hasSelection()) {
+            ctx.sendMessage(Message.raw("§c[WE] No selection."));
+            return;
+        }
+        long total = session.getTotalBlocks();
+        if (total > WorldEditPlugin.MAX_BLOCKS) {
+            ctx.sendMessage(Message.raw("§c[WE] Selection too large (" + total + " blocks). Max: " + WorldEditPlugin.MAX_BLOCKS));
+            return;
+        }
+
+        Vector3i min = session.getMin();
+        Vector3i max = session.getMax();
+        int sx = session.getSizeX(), sy = session.getSizeY(), sz = session.getSizeZ();
+
+        // Copy to clipboard
+        String[][][] clip = new String[sx][sy][sz];
+        for (int x = min.x; x <= max.x; x++)
+            for (int y = min.y; y <= max.y; y++)
+                for (int z = min.z; z <= max.z; z++) {
+                    BlockType bt = world.getBlockType(x, y, z);
+                    clip[x - min.x][y - min.y][z - min.z] = (bt != null) ? bt.getId() : BlockType.EMPTY_KEY;
+                }
+        session.clipboard = clip;
+        session.clipboardOrigin = min;
+
+        // Save undo (the cut region — so undo restores it)
+        if (total <= WorldEditPlugin.UNDO_SKIP_THRESHOLD) {
+            session.undoBuffer = clip; // same data — undo re-places what was cut
+            session.undoOrigin = min;
+        } else {
+            session.undoBuffer = null;
+            session.undoOrigin = null;
+        }
+
+        // Clear original blocks
+        for (int x = min.x; x <= max.x; x++)
+            for (int y = min.y; y <= max.y; y++)
+                for (int z = min.z; z <= max.z; z++)
+                    world.setBlock(x, y, z, BlockType.EMPTY_KEY);
+
+        ctx.sendMessage(Message.raw("§a[WE] Cut §e" + total + "§a blocks to clipboard. Use §f/we paste§a to place, §f/we rotate§a to reorient first."));
+    }
+
+    // ──────────────────────── rotate ────────────────────────
+
+    private void doRotate(CommandContext ctx, WandSession session, String degreesArg) {
+        if (!session.hasClipboard()) {
+            ctx.sendMessage(Message.raw("§c[WE] Clipboard is empty — use /we copy or /we cut first."));
+            return;
+        }
+        int degrees;
+        try {
+            degrees = Integer.parseInt(degreesArg.replace("°", ""));
+        } catch (NumberFormatException e) {
+            ctx.sendMessage(Message.raw("§c[WE] Usage: /we rotate <90|180|270>"));
+            return;
+        }
+        int steps = ((degrees / 90) % 4 + 4) % 4;
+        if (steps == 0) {
+            ctx.sendMessage(Message.raw("§7[WE] Rotated 0° — clipboard unchanged."));
+            return;
+        }
+
+        String[][][] clip = session.clipboard;
+        for (int i = 0; i < steps; i++) {
+            clip = rotate90(clip);
+        }
+        session.clipboard = clip;
+        ctx.sendMessage(Message.raw("§a[WE] Clipboard rotated §e" + (steps * 90) + "°§a. Use §f/we paste§a to place."));
+    }
+
+    /** Rotate a 3D block array 90° clockwise around the Y axis. X→Z, Z→-X. */
+    private String[][][] rotate90(String[][][] src) {
+        int sx = src.length, sy = src[0].length, sz = src[0][0].length;
+        // After 90° CW (top-down): new[z][y][sx-1-x] = old[x][y][z]  →  new dims: sz x sy x sx
+        String[][][] dst = new String[sz][sy][sx];
+        for (int x = 0; x < sx; x++)
+            for (int y = 0; y < sy; y++)
+                for (int z = 0; z < sz; z++)
+                    dst[z][y][sx - 1 - x] = src[x][y][z];
+        return dst;
+    }
+
+    // ──────────────────────── stack ────────────────────────
+
+    private void doStack(CommandContext ctx, WandSession session, World world, String countArg, String dirArg) {
+        if (!session.hasSelection()) {
+            ctx.sendMessage(Message.raw("§c[WE] No selection."));
+            return;
+        }
+        int n;
+        try {
+            n = Integer.parseInt(countArg);
+            if (n < 1) throw new NumberFormatException();
+        } catch (NumberFormatException e) {
+            ctx.sendMessage(Message.raw("§c[WE] Usage: /we stack <n> <north|south|east|west|up|down>"));
+            return;
+        }
+
+        int[] step;
+        switch (dirArg.toLowerCase()) {
+            case "north" -> step = new int[]{0, 0, -session.getSizeZ()};
+            case "south" -> step = new int[]{0, 0,  session.getSizeZ()};
+            case "east"  -> step = new int[]{ session.getSizeX(), 0, 0};
+            case "west"  -> step = new int[]{-session.getSizeX(), 0, 0};
+            case "up"    -> step = new int[]{0,  session.getSizeY(), 0};
+            case "down"  -> step = new int[]{0, -session.getSizeY(), 0};
+            default -> {
+                ctx.sendMessage(Message.raw("§c[WE] Direction must be: north south east west up down"));
+                return;
+            }
+        }
+
+        long totalOp = session.getTotalBlocks() * n;
+        if (totalOp > WorldEditPlugin.MAX_BLOCKS) {
+            ctx.sendMessage(Message.raw("§c[WE] Stack too large (" + totalOp + " blocks). Max: " + WorldEditPlugin.MAX_BLOCKS));
+            return;
+        }
+
+        Vector3i min = session.getMin();
+        Vector3i max = session.getMax();
+
+        // Read source once
+        int sx = session.getSizeX(), sy = session.getSizeY(), sz = session.getSizeZ();
+        String[][][] src = new String[sx][sy][sz];
+        for (int x = min.x; x <= max.x; x++)
+            for (int y = min.y; y <= max.y; y++)
+                for (int z = min.z; z <= max.z; z++) {
+                    BlockType bt = world.getBlockType(x, y, z);
+                    src[x - min.x][y - min.y][z - min.z] = (bt != null) ? bt.getId() : BlockType.EMPTY_KEY;
+                }
+
+        long placed = 0;
+        for (int rep = 1; rep <= n; rep++) {
+            int ox = min.x + step[0] * rep;
+            int oy = min.y + step[1] * rep;
+            int oz = min.z + step[2] * rep;
+            for (int dx = 0; dx < sx; dx++)
+                for (int dy = 0; dy < sy; dy++)
+                    for (int dz = 0; dz < sz; dz++) {
+                        String blockId = src[dx][dy][dz];
+                        if (blockId != null) {
+                            world.setBlock(ox + dx, oy + dy, oz + dz, blockId);
+                            placed++;
+                        }
+                    }
+        }
+        ctx.sendMessage(Message.raw("§a[WE] Stacked §e" + n + "x §a" + dirArg + " — §e" + placed + "§a blocks placed."));
+    }
+
+
 
     private void doCopy(CommandContext ctx, WandSession session, World world, PlayerRef player) {
         if (!session.hasSelection()) {
@@ -377,8 +595,12 @@ public class WandCommand extends AbstractPlayerCommand {
         ctx.sendMessage(Message.raw("§e/we set <blockId> §7— fill selection"));
         ctx.sendMessage(Message.raw("§e/we walls <blockId> §7— fill walls of selection"));
         ctx.sendMessage(Message.raw("§e/we clear §7— fill selection with air"));
+        ctx.sendMessage(Message.raw("§e/we hollow §7— remove interior, keep outer shell"));
         ctx.sendMessage(Message.raw("§e/we copy §7— copy selection to clipboard"));
+        ctx.sendMessage(Message.raw("§e/we cut §7— copy + clear original (ready to paste)"));
         ctx.sendMessage(Message.raw("§e/we paste §7— paste clipboard at feet"));
+        ctx.sendMessage(Message.raw("§e/we rotate <90|180|270> §7— rotate clipboard before paste"));
+        ctx.sendMessage(Message.raw("§e/we stack <n> <north|south|east|west|up|down> §7— repeat selection N times"));
         ctx.sendMessage(Message.raw("§e/we undo §7— undo last operation"));
         ctx.sendMessage(Message.raw("§e/we size §7— show selection info"));
     }
