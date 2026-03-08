@@ -12,7 +12,6 @@ import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.Message;
-import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.projectile.ProjectileModule;
 import com.hypixel.hytale.server.core.modules.projectile.config.ProjectileConfig;
@@ -57,25 +56,19 @@ public class TankBarrelTickingSystem extends EntityTickingSystem<EntityStore> {
         if (dc == null || dc.getConfig() == null) return;
         if (!BARREL_ID.equals(dc.getConfig().getId())) return;
 
+        // Skip fast if nothing pending
+        if (TankBarrelPlugin.pendingActions.isEmpty()) return;
+
         Ref<EntityStore> ownerRef = dc.getOwner();
-        if (ownerRef == null || !ownerRef.isValid()) {
-            LOGGER.atInfo().log("[TankBarrel] Barrel found but ownerRef null/invalid");
-            return;
-        }
+        if (ownerRef == null || !ownerRef.isValid()) return;
 
-        // Get owner UUID via Player ECS component → PlayerRef
-        Player ownerPlayer = store.getComponent(ownerRef, Player.getComponentType());
-        if (ownerPlayer == null) {
-            LOGGER.atInfo().log("[TankBarrel] ownerRef valid but Player component null - " + TankBarrelPlugin.pendingActions.size() + " actions queued");
-            return;
-        }
-        PlayerRef ownerPlayerRef = ownerPlayer.getPlayerRef();
-        if (ownerPlayerRef == null) return;
-        UUID ownerId = ownerPlayerRef.getUuid();
+        // Pick the first pending action — works for single-player.
+        // PlayerRef is stored in PendingAction so no cross-store lookup needed.
+        UUID firstKey = TankBarrelPlugin.pendingActions.keys().nextElement();
+        TankBarrelPlugin.PendingAction pending = TankBarrelPlugin.pendingActions.remove(firstKey);
+        if (pending == null) return;
 
-        // Check if this player has a pending action
-        TankBarrelCommand.Action action = TankBarrelPlugin.pendingActions.remove(ownerId);
-        if (action == null) return;
+        PlayerRef ownerPlayerRef = pending.playerRef;
 
         Ref<EntityStore> barrelRef = chunk.getReferenceTo(index);
         int barrelKey = System.identityHashCode(barrelRef);
@@ -84,7 +77,7 @@ public class TankBarrelTickingSystem extends EntityTickingSystem<EntityStore> {
         TransformComponent barrelTransform = chunk.getComponent(index, TransformComponent.getComponentType());
         if (barrelTransform == null) return;
 
-        switch (action) {
+        switch (pending.action) {
             case LOAD_TNT:
                 state.tntAmmo = Math.min(state.tntAmmo + LOAD_AMOUNT, MAX_AMMO);
                 ownerPlayerRef.sendMessage(Message.raw("§a[Barrel] Loaded TNT shells: " + state.tntAmmo + "/" + MAX_AMMO));

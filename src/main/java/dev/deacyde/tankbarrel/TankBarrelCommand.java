@@ -45,10 +45,10 @@ public class TankBarrelCommand extends AbstractPlayerCommand {
         if (sub.equals("load") && args.length >= 2) {
             String ammoType = args[1].toLowerCase();
             if (ammoType.equals("tnt")) {
-                TankBarrelPlugin.pendingActions.put(player.getUuid(), Action.LOAD_TNT);
+                TankBarrelPlugin.pendingActions.put(player.getUuid(), new TankBarrelPlugin.PendingAction(Action.LOAD_TNT, player));
                 ctx.sendMessage(Message.raw("§e[Barrel] Loading TNT shells into nearest barrel..."));
             } else if (ammoType.equals("nuke")) {
-                TankBarrelPlugin.pendingActions.put(player.getUuid(), Action.LOAD_NUKE);
+                TankBarrelPlugin.pendingActions.put(player.getUuid(), new TankBarrelPlugin.PendingAction(Action.LOAD_NUKE, player));
                 ctx.sendMessage(Message.raw("§e[Barrel] Loading Nuke shells into nearest barrel..."));
             } else {
                 ctx.sendMessage(Message.raw("§c[Barrel] Unknown ammo. Use: /barrel load tnt|nuke"));
@@ -59,18 +59,17 @@ public class TankBarrelCommand extends AbstractPlayerCommand {
         if (sub.equals("fire")) {
             String ammoType = (args.length >= 2) ? args[1].toLowerCase() : "tnt";
             if (ammoType.equals("nuke")) {
-                TankBarrelPlugin.pendingActions.put(player.getUuid(), Action.FIRE_NUKE);
+                TankBarrelPlugin.pendingActions.put(player.getUuid(), new TankBarrelPlugin.PendingAction(Action.FIRE_NUKE, player));
                 ctx.sendMessage(Message.raw("§c[Barrel] Firing Nuke shell!"));
             } else {
-                TankBarrelPlugin.pendingActions.put(player.getUuid(), Action.FIRE_TNT);
+                TankBarrelPlugin.pendingActions.put(player.getUuid(), new TankBarrelPlugin.PendingAction(Action.FIRE_TNT, player));
                 ctx.sendMessage(Message.raw("§e[Barrel] Firing TNT shell!"));
             }
             return;
         }
 
         if (sub.equals("ammo")) {
-            // Show ammo status — ticking system will respond next tick
-            TankBarrelPlugin.pendingActions.put(player.getUuid(), Action.SHOW_AMMO);
+            TankBarrelPlugin.pendingActions.put(player.getUuid(), new TankBarrelPlugin.PendingAction(Action.SHOW_AMMO, player));
             return;
         }
 
