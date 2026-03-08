@@ -19,6 +19,7 @@ public class TankBarrelCommand extends AbstractPlayerCommand {
 
     public TankBarrelCommand() {
         super("barrel", "Tank barrel commands. Usage: /barrel [give|load tnt|load nuke|fire tnt|fire nuke]");
+        setAllowsExtraArguments(true);
     }
 
     @Override
