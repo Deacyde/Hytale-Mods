@@ -159,16 +159,21 @@ public class WandCommand extends AbstractPlayerCommand {
             + " pos1=" + session.pos1 + " pos2=" + session.pos2
             + " min=" + min + " max=" + max + " size=" + sx + "x" + sy + "x" + sz);
 
-        // Save undo buffer before modifying
-        String[][][] undo = new String[sx][sy][sz];
-        for (int x = min.x; x <= max.x; x++)
-            for (int y = min.y; y <= max.y; y++)
-                for (int z = min.z; z <= max.z; z++) {
-                    BlockType bt = world.getBlockType(x, y, z);
-                    undo[x - min.x][y - min.y][z - min.z] = (bt != null) ? bt.getId() : BlockType.EMPTY_KEY;
-                }
-        session.undoBuffer = undo;
-        session.undoOrigin = min;
+        // Save undo buffer before modifying (skip for large selections — too slow to pre-read)
+        if (total <= WorldEditPlugin.UNDO_SKIP_THRESHOLD) {
+            String[][][] undo = new String[sx][sy][sz];
+            for (int x = min.x; x <= max.x; x++)
+                for (int y = min.y; y <= max.y; y++)
+                    for (int z = min.z; z <= max.z; z++) {
+                        BlockType bt = world.getBlockType(x, y, z);
+                        undo[x - min.x][y - min.y][z - min.z] = (bt != null) ? bt.getId() : BlockType.EMPTY_KEY;
+                    }
+            session.undoBuffer = undo;
+            session.undoOrigin = min;
+        } else {
+            session.undoBuffer = null;
+            session.undoOrigin = null;
+        }
 
         // Fill — use integer block ID for Empty to avoid string lookup issues
         boolean isClearing = BlockType.EMPTY_KEY.equals(blockId);

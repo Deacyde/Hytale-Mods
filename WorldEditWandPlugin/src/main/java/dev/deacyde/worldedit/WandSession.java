@@ -13,6 +13,11 @@ public class WandSession {
     /** Toggle: after pos1 is set, next wand click sets pos2. Resets after pos2 is set. */
     public boolean nextClickIsPos2 = false;
 
+    /** Debounce: last block target that triggered a toggle (to suppress held-click repeats). */
+    public Vector3i lastToggleTarget = null;
+    /** Debounce: epoch ms of last toggle fire. */
+    public long lastToggleMsEpoch = 0L;
+
     // clipboard[dx][dy][dz] = blockId string; null entry means Air
     public String[][][] clipboard = null;
     // World-space origin of the clipboard (= pos1 corner when copy was taken)

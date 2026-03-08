@@ -26,7 +26,9 @@ public class WorldEditPlugin extends JavaPlugin {
     private static WorldEditPlugin instance;
 
     static final String WAND_ITEM_ID = "WE_Wand";
-    static final int MAX_BLOCKS = 100_000;
+    static final int MAX_BLOCKS = 500_000;
+    /** Skip saving undo buffer for selections larger than this — too slow to pre-read. */
+    static final int UNDO_SKIP_THRESHOLD = 50_000;
 
     private final Map<UUID, WandSession> sessions = new ConcurrentHashMap<>();
     @SuppressWarnings("unused")

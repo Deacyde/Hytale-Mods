@@ -50,12 +50,24 @@ public class WandBreakBlockSystem extends EntityEventSystem<EntityStore, BreakBl
 
         WandSession session = WorldEditPlugin.get().getSession(player.getUuid());
 
+        // Debounce: suppress repeated fires from holding the mouse button.
+        // Only process if the target block changed OR 500ms has passed since last trigger.
+        long now = System.currentTimeMillis();
+        boolean sameTarget = target.equals(session.lastToggleTarget);
+        boolean inCooldown = (now - session.lastToggleMsEpoch) < 500L;
+        if (sameTarget && inCooldown) {
+            event.setCancelled(true);
+            return;
+        }
+        session.lastToggleTarget = new Vector3i(target.x, target.y, target.z);
+        session.lastToggleMsEpoch = now;
+
         // Toggle: first click = pos1, second = pos2, third = pos1, etc.
         MouseButtonType btn;
         if (!session.nextClickIsPos2) {
             btn = MouseButtonType.Left;          // pos1
             session.nextClickIsPos2 = true;
-            session.pos2 = null;                 // clear pos2 so selection is incomplete until next click
+            // NOTE: do NOT clear pos2 here — that would break copy/paste after setting both positions
         } else {
             btn = MouseButtonType.Right;         // pos2
             session.nextClickIsPos2 = false;
