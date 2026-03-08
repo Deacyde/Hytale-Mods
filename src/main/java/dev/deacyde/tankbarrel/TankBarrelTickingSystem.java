@@ -9,8 +9,10 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.Message;
+import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.projectile.ProjectileModule;
 import com.hypixel.hytale.server.core.modules.projectile.config.ProjectileConfig;
@@ -23,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class TankBarrelTickingSystem extends EntityTickingSystem<EntityStore> {
 
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     private static final String BARREL_ID = "Gun_Turret";
     private static final int LOAD_AMOUNT = 5;
     private static final int MAX_AMMO = 20;
@@ -55,10 +58,18 @@ public class TankBarrelTickingSystem extends EntityTickingSystem<EntityStore> {
         if (!BARREL_ID.equals(dc.getConfig().getId())) return;
 
         Ref<EntityStore> ownerRef = dc.getOwner();
-        if (ownerRef == null || !ownerRef.isValid()) return;
+        if (ownerRef == null || !ownerRef.isValid()) {
+            LOGGER.atInfo().log("[TankBarrel] Barrel found but ownerRef null/invalid");
+            return;
+        }
 
-        // Get owner UUID via PlayerRef component on the player entity
-        PlayerRef ownerPlayerRef = store.getComponent(ownerRef, PlayerRef.getComponentType());
+        // Get owner UUID via Player ECS component → PlayerRef
+        Player ownerPlayer = store.getComponent(ownerRef, Player.getComponentType());
+        if (ownerPlayer == null) {
+            LOGGER.atInfo().log("[TankBarrel] ownerRef valid but Player component null - " + TankBarrelPlugin.pendingActions.size() + " actions queued");
+            return;
+        }
+        PlayerRef ownerPlayerRef = ownerPlayer.getPlayerRef();
         if (ownerPlayerRef == null) return;
         UUID ownerId = ownerPlayerRef.getUuid();
 
