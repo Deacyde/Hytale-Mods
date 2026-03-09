@@ -1,9 +1,42 @@
 {
-  "Parent": "Explode_Generic",
+  "Type": "Explode",
   "Config": {
+    "DamageEntities": true,
+    "DamageBlocks": true,
     "BlockDamageRadius": 50,
     "EntityDamageRadius": 60,
     "EntityDamage": 300,
-    "BlockDropChance": 0.2
+    "BlockDropChance": 0.2,
+    "Knockback": {
+      "Type": "Point",
+      "VelocityConfig": {
+        "AirResistance": 0.97,
+        "AirResistanceMax": 0.96,
+        "Direction": { "X": 0.0, "Y": 5.0, "Z": 0.0 },
+        "GroundResistance": 0.94,
+        "GroundResistanceMax": 0.3,
+        "Threshold": 3.0
+      },
+      "Force": 20,
+      "VelocityType": "Set"
+    },
+    "ItemTool": {
+      "Specs": [
+        { "Power": 10, "GatherType": "SoftBlocks" },
+        { "Power": 10, "GatherType": "Soils" },
+        { "Power": 10, "GatherType": "Woods" },
+        { "Power": 10, "GatherType": "Rocks" },
+        { "Power": 10, "GatherType": "Benches" },
+        { "Power": 5,  "GatherType": "VolcanicRocks" },
+        { "Power": 10, "GatherType": "OreCopper" },
+        { "Power": 10, "GatherType": "OreIron" },
+        { "Power": 10, "GatherType": "OreSilver" },
+        { "Power": 10, "GatherType": "OreGold" },
+        { "Power": 10, "GatherType": "OreThorium" },
+        { "Power": 10, "GatherType": "OreCobalt" },
+        { "Power": 10, "GatherType": "OreAdamantite" },
+        { "Power": 10, "GatherType": "OreMithril" }
+      ]
+    }
   }
 }

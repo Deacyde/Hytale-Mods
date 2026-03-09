@@ -1,5 +1,5 @@
 {
-  "Model": "TNT_Block_Projectile",
+  "Model": "Gun_Turret_Item_Projectile",
   "Physics": {
     "Type": "Standard",
     "Gravity": 15,
@@ -10,20 +10,20 @@
     "Bounciness": 0.1,
     "BounceCount": 0,
     "AllowRolling": false,
-    "SticksVertically": false
+    "SticksVertically": true
   },
   "LaunchForce": 30,
   "SpawnOffset": { "X": 0.0, "Y": 0.5, "Z": 0.0 },
   "Interactions": {
-    "ProjectileHit": {
+    "ProjectileSpawn": {
       "Cooldown": { "Cooldown": 0 },
-      "Rules": { "Interrupting": ["ProjectileSpawn"] },
       "Interactions": [
+        { "Type": "Simple", "RunTime": 3 },
         "Tank_Barrel_TNT_Explode",
         { "Type": "RemoveEntity", "Entity": "User" }
       ]
     },
-    "ProjectileMiss": {
+    "ProjectileHit": {
       "Cooldown": { "Cooldown": 0 },
       "Rules": { "Interrupting": ["ProjectileSpawn"] },
       "Interactions": [

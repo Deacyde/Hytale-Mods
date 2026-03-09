@@ -11,6 +11,7 @@ import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.projectile.ProjectileModule;
@@ -34,7 +35,7 @@ public class TankBarrelTickingSystem extends EntityTickingSystem<EntityStore> {
     private static final String NUKE_SHELL_CONFIG = "Projectile_Config_Tank_Barrel_Nuke_Shell";
 
     // Per-barrel state keyed by identity hash of the barrel's Ref
-    private final ConcurrentHashMap<Integer, TankBarrelState> barrelStates = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, TankBarrelState> barrelStates = new ConcurrentHashMap<>();
 
     private static final Query<EntityStore> QUERY = Archetype.of(new ComponentType[]{
         DeployableComponent.getComponentType(),
@@ -59,23 +60,27 @@ public class TankBarrelTickingSystem extends EntityTickingSystem<EntityStore> {
         // Skip fast if nothing pending
         if (TankBarrelPlugin.pendingActions.isEmpty()) return;
 
-        Ref<EntityStore> ownerRef = dc.getOwner();
-        if (ownerRef == null || !ownerRef.isValid()) return;
-
         // Pick the first pending action — works for single-player.
-        // PlayerRef is stored in PendingAction so no cross-store lookup needed.
         UUID firstKey = TankBarrelPlugin.pendingActions.keys().nextElement();
         TankBarrelPlugin.PendingAction pending = TankBarrelPlugin.pendingActions.remove(firstKey);
         if (pending == null) return;
 
         PlayerRef ownerPlayerRef = pending.playerRef;
 
-        Ref<EntityStore> barrelRef = chunk.getReferenceTo(index);
-        int barrelKey = System.identityHashCode(barrelRef);
-        TankBarrelState state = barrelStates.computeIfAbsent(barrelKey, k -> new TankBarrelState());
+        // Use the PLAYER's entity ref as projectile owner (same as GunTurret uses dc.getOwner()).
+        // playerRef.getReference() gives the valid player entity ref in the entity store.
+        Ref<EntityStore> playerEntityRef = ownerPlayerRef.getReference();
+        if (playerEntityRef == null || !playerEntityRef.isValid()) return;
 
         TransformComponent barrelTransform = chunk.getComponent(index, TransformComponent.getComponentType());
         if (barrelTransform == null) return;
+
+        // Key state by barrel position (stable across ticks, unlike Ref identity hash)
+        Vector3d pos = barrelTransform.getPosition();
+        long barrelKey = (long)(pos.getX() * 100) * 1000000L + (long)(pos.getY() * 100) * 1000L + (long)(pos.getZ() * 100);
+        TankBarrelState state = barrelStates.computeIfAbsent(barrelKey, k -> new TankBarrelState());
+
+        LOGGER.atInfo().log("[TankBarrel] Processing " + pending.action + " — tnt=" + state.tntAmmo + " nuke=" + state.nukeAmmo);
 
         switch (pending.action) {
             case LOAD_TNT:
@@ -87,10 +92,10 @@ public class TankBarrelTickingSystem extends EntityTickingSystem<EntityStore> {
                 ownerPlayerRef.sendMessage(Message.raw("§a[Barrel] Loaded Nuke shells: " + state.nukeAmmo + "/" + MAX_AMMO));
                 break;
             case FIRE_TNT:
-                fireShell(ownerRef, ownerPlayerRef, barrelTransform, state, store, commandBuffer, false);
+                fireShell(playerEntityRef, ownerPlayerRef, barrelTransform, state, commandBuffer, false);
                 break;
             case FIRE_NUKE:
-                fireShell(ownerRef, ownerPlayerRef, barrelTransform, state, store, commandBuffer, true);
+                fireShell(playerEntityRef, ownerPlayerRef, barrelTransform, state, commandBuffer, true);
                 break;
             case SHOW_AMMO:
                 ownerPlayerRef.sendMessage(Message.raw("§e[Barrel] Ammo: §fTNT=" + state.tntAmmo + " §cNuke=" + state.nukeAmmo));
@@ -98,9 +103,9 @@ public class TankBarrelTickingSystem extends EntityTickingSystem<EntityStore> {
         }
     }
 
-    private void fireShell(Ref<EntityStore> ownerRef, PlayerRef ownerPlayerRef,
+    private void fireShell(Ref<EntityStore> playerEntityRef, PlayerRef ownerPlayerRef,
                            TransformComponent barrelTransform, TankBarrelState state,
-                           Store<EntityStore> store, CommandBuffer<EntityStore> commandBuffer,
+                           CommandBuffer<EntityStore> commandBuffer,
                            boolean nuke) {
         long now = System.currentTimeMillis();
 
@@ -133,14 +138,12 @@ public class TankBarrelTickingSystem extends EntityTickingSystem<EntityStore> {
             return;
         }
 
-        // Fire away from owner: direction = barrel pos - player pos, elevated 30°
         Vector3d barrelPos = barrelTransform.getPosition();
         Vector3d spawnPos = new Vector3d(barrelPos.getX(), barrelPos.getY() + 0.5, barrelPos.getZ());
-
-        Vector3d velocity = computeFireDirection(ownerRef, barrelPos, store);
+        Vector3d velocity = computeFireDirection(ownerPlayerRef);
 
         try {
-            ProjectileModule.get().spawnProjectile(ownerRef, commandBuffer, cfg, spawnPos, velocity);
+            ProjectileModule.get().spawnProjectile(playerEntityRef, commandBuffer, cfg, spawnPos, velocity);
             if (nuke) {
                 state.nukeAmmo--;
                 state.lastNukeFireMs = now;
@@ -155,21 +158,19 @@ public class TankBarrelTickingSystem extends EntityTickingSystem<EntityStore> {
         }
     }
 
-    // Fires away from the player at 30° elevation (player stands behind barrel, barrel faces away)
-    private Vector3d computeFireDirection(Ref<EntityStore> ownerRef, Vector3d barrelPos, Store<EntityStore> store) {
-        TransformComponent playerTransform = store.getComponent(ownerRef, TransformComponent.getComponentType());
-        if (playerTransform != null) {
-            Vector3d playerPos = playerTransform.getPosition();
-            double dx = barrelPos.getX() - playerPos.getX();
-            double dz = barrelPos.getZ() - playerPos.getZ();
-            double horiz = Math.sqrt(dx * dx + dz * dz);
-            if (horiz > 0.1) {
-                double elevation = Math.tan(Math.toRadians(30));
-                double len = Math.sqrt(dx * dx + dz * dz + elevation * elevation * horiz * horiz);
-                return new Vector3d(dx / horiz, elevation, dz / horiz);
-            }
+    // Fires in the direction the player is looking using their head yaw/pitch
+    private Vector3d computeFireDirection(PlayerRef playerRef) {
+        Vector3f headRot = playerRef.getHeadRotation();
+        if (headRot == null) {
+            return new Vector3d(0, 1, 0);
         }
-        // Fallback: fire straight up
-        return new Vector3d(0, 1, 0);
+        // Hytale: yaw=0 faces north (-Z), yaw=90 faces east (+X)
+        // Look vector: negate the Z component vs Minecraft convention
+        double yawRad = Math.toRadians(headRot.getYaw());
+        double pitchRad = Math.toRadians(headRot.getPitch());
+        double dx = Math.sin(yawRad) * Math.cos(pitchRad);
+        double dy = -Math.sin(pitchRad);
+        double dz = -Math.cos(yawRad) * Math.cos(pitchRad);
+        return new Vector3d(dx, dy, dz);
     }
 }
