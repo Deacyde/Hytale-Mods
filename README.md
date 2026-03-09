@@ -18,6 +18,7 @@ Hytale mods require build `>= 2026.02.19`. Copy all files to:
 | [GunTurretPlugin](GunTurretPlugin/README.md) | `GunTurretPlugin-1.0.0.jar` + `GunTurret-1.0.0.zip` | `/turret` | Deploy auto-targeting turrets that shoot nearby mobs |
 | [SpawnBlockPlugin](SpawnBlockPlugin/README.md) | `SpawnBlockPlugin-1.0.0.jar` | `/spawnblock` | Placeable block that continuously spawns configured mobs |
 | [WorldEditWandPlugin](WorldEditWandPlugin/README.md) | `WorldEditWandPlugin-1.0.0.jar` | `/we` | WorldEdit-style wand for fill, copy, paste, undo |
+| [TankBarrelPlugin](TankBarrelPlugin/README.md) | `TankBarrelPlugin-1.0.0.jar` | `/barrel` | Deployable tank barrel — fires TNT and Nuke shells in any direction |
 
 ### Asset Packs (`.zip` only — no plugin needed)
 
@@ -54,6 +55,14 @@ Hytale mods require build `>= 2026.02.19`. Copy all files to:
 /we paste              → Paste clipboard at current position
 /we undo               → Undo last fill/paste
 /we size               → Show selection dimensions and block count
+
+/barrel                → Get Tank Barrel (auto-faces your direction)
+/barrel give [n|e|s|w] → Get barrel facing a specific direction
+/barrel load tnt       → Load 5 TNT shells into nearest barrel
+/barrel load nuke      → Load 5 Nuke shells into nearest barrel
+/barrel fire tnt       → Fire TNT shell (3s fuse, radius 5 explosion)
+/barrel fire nuke      → Fire Nuke shell (4s fuse, MASSIVE explosion)
+/barrel ammo           → Check ammo count
 ```
 
 ---
