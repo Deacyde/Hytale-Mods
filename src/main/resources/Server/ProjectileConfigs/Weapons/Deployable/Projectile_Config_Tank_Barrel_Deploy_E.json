@@ -10,8 +10,16 @@
     "SticksVertically": true
   },
   "LaunchForce": 15,
-  "SpawnOffset": { "X": 0.3, "Y": -0.5, "Z": -0.6 },
-  "SpawnRotationOffset": { "Pitch": 10.0, "Yaw": 0, "Roll": 0 },
+  "SpawnOffset": {
+    "X": 0.3,
+    "Y": -0.5,
+    "Z": -0.6
+  },
+  "SpawnRotationOffset": {
+    "Pitch": 10.0,
+    "Yaw": 90,
+    "Roll": 0
+  },
   "Interactions": {
     "ProjectileMiss": {
       "Interactions": [
@@ -36,9 +44,16 @@
             "DoLineOfSightTest": false,
             "RespectTeams": true,
             "Stats": {
-              "Health": { "Initial": 200, "Max": 200 }
+              "Health": {
+                "Initial": 200,
+                "Max": 200
+              }
             },
-            "TargetOffset": { "X": 0, "Y": 1, "Z": 0 },
+            "TargetOffset": {
+              "X": 0,
+              "Y": 1,
+              "Z": 0
+            },
             "Knockback": {
               "Type": "Force",
               "VelocityConfig": {
@@ -49,26 +64,60 @@
                 "Threshold": 3.0,
                 "Style": "Exp"
               },
-              "Direction": { "X": 0.0, "Y": 0.0, "Z": -1.5 },
+              "Direction": {
+                "X": 0.0,
+                "Y": 0.0,
+                "Z": -1.5
+              },
               "Force": 1.0,
               "VelocityType": "Set"
             },
             "ProjectileSpawnOffsets": {
-              "UP":    { "X": 0, "Y": 0.5, "Z": 0 },
-              "DOWN":  { "X": 0, "Y": -0.5, "Z": 0 },
-              "NORTH": { "X": 0, "Y": 0, "Z": 0.5 },
-              "SOUTH": { "X": 0, "Y": 0, "Z": -0.5 },
-              "EAST":  { "X": -0.5, "Y": 0, "Z": 0 },
-              "WEST":  { "X": 0.5, "Y": 0, "Z": 0 }
+              "UP": {
+                "X": 0,
+                "Y": 0.5,
+                "Z": 0
+              },
+              "DOWN": {
+                "X": 0,
+                "Y": -0.5,
+                "Z": 0
+              },
+              "NORTH": {
+                "X": 0,
+                "Y": 0,
+                "Z": 0.5
+              },
+              "SOUTH": {
+                "X": 0,
+                "Y": 0,
+                "Z": -0.5
+              },
+              "EAST": {
+                "X": -0.5,
+                "Y": 0,
+                "Z": 0
+              },
+              "WEST": {
+                "X": 0.5,
+                "Y": 0,
+                "Z": 0
+              }
             },
             "ProjectileHitLocalSoundEventId": "ARROW_FULLCHARGE_HIT",
             "ProjectileHitWorldSoundEventId": "ARROW_HIT_3P",
             "DeploySoundEventId": "SFX_Deployable_Totem_Heal_Spawn",
             "SpawnParticles": [
-              { "SystemId": "Explosion_Medium", "TargetEntityPart": "Entity" }
+              {
+                "SystemId": "Explosion_Medium",
+                "TargetEntityPart": "Entity"
+              }
             ],
             "DespawnParticles": [
-              { "SystemId": "Explosion_Medium", "TargetEntityPart": "Entity" }
+              {
+                "SystemId": "Explosion_Medium",
+                "TargetEntityPart": "Entity"
+              }
             ],
             "ProjectileConfig": {
               "Model": "Arrow_Crude",
@@ -82,18 +131,28 @@
                 "SticksVertically": true
               },
               "LaunchForce": 50,
-              "SpawnRotationOffset": { "Pitch": 0, "Yaw": 0, "Roll": 0 },
+              "SpawnRotationOffset": {
+                "Pitch": 0,
+                "Yaw": 0,
+                "Roll": 0
+              },
               "Interactions": {
                 "ProjectileMiss": {
                   "Interactions": [
-                    { "Type": "Simple", "RunTime": 0 }
+                    {
+                      "Type": "Simple",
+                      "RunTime": 0
+                    }
                   ]
                 }
               }
             }
           }
         },
-        { "Type": "RemoveEntity", "Entity": "User" }
+        {
+          "Type": "RemoveEntity",
+          "Entity": "User"
+        }
       ]
     }
   }

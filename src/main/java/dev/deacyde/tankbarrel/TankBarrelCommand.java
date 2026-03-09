@@ -34,9 +34,34 @@ public class TankBarrelCommand extends AbstractPlayerCommand {
         String[] args = tokens.length > 1 ? java.util.Arrays.copyOfRange(tokens, 1, tokens.length) : new String[0];
 
         if (args.length == 0 || args[0].equalsIgnoreCase("give")) {
-            ItemStack barrel = new ItemStack("Weapon_Deployable_Tank_Barrel", 1);
+            // Determine facing direction: explicit arg or snap from player yaw
+            String dir = "N";
+            if (args.length >= 2) {
+                dir = args[1].toUpperCase();
+                if (!dir.equals("N") && !dir.equals("E") && !dir.equals("S") && !dir.equals("W")) {
+                    ctx.sendMessage(Message.raw("§c[Barrel] Unknown direction. Use: n, e, s, w"));
+                    return;
+                }
+            } else {
+                // Snap player's head yaw to nearest cardinal direction
+                // Hytale yaw: 0=North, 90=East, 180=South, 270=West (all in degrees)
+                float yaw = player.getHeadRotation().getYaw();
+                // Normalize to [0, 360)
+                yaw = ((yaw % 360) + 360) % 360;
+                if (yaw >= 315 || yaw < 45)       dir = "N";
+                else if (yaw >= 45 && yaw < 135)  dir = "E";
+                else if (yaw >= 135 && yaw < 225) dir = "S";
+                else                               dir = "W";
+            }
+            String itemId = dir.equals("N") ? "Weapon_Deployable_Tank_Barrel"
+                                            : "Weapon_Deployable_Tank_Barrel_" + dir;
+            ItemStack barrel = new ItemStack(itemId, 1);
             ItemUtils.throwItem(playerRef, barrel, 0.0f, store);
-            ctx.sendMessage(Message.raw("§a[Barrel] Tank Barrel given! Throw it to deploy."));
+            String[] names = {"N=North", "E=East", "S=South", "W=West"};
+            java.util.Map<String,String> dirNames = new java.util.HashMap<>();
+            dirNames.put("N", "North"); dirNames.put("E", "East");
+            dirNames.put("S", "South"); dirNames.put("W", "West");
+            ctx.sendMessage(Message.raw("§a[Barrel] Tank Barrel (" + dirNames.get(dir) + ") given! Throw to deploy. Use §7/barrel give [n|e|s|w]§a to pick direction."));
             return;
         }
 
@@ -73,6 +98,6 @@ public class TankBarrelCommand extends AbstractPlayerCommand {
             return;
         }
 
-        ctx.sendMessage(Message.raw("§7[Barrel] Usage: /barrel [give|load tnt|load nuke|fire tnt|fire nuke|ammo]"));
+        ctx.sendMessage(Message.raw("§7[Barrel] Usage: /barrel [give [n|e|s|w]|load tnt|load nuke|fire tnt|fire nuke|ammo]"));
     }
 }
